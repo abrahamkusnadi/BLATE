@@ -142,11 +142,15 @@ public class DiscoverActivity extends AppCompatActivity {
         if (peopleList.isEmpty() || currentIndex >= peopleList.size()) return;
 
         Person currentPerson = peopleList.get(currentIndex);
-        String targetId = String.valueOf(currentPerson.getId());
+        // Di dalam handleSwipe
+        // Simpan ID sebagai String yang diformat menjadi 3 digit (001)
+        // agar SAMA PERSIS dengan Document ID di Firestore
+        String targetId = String.format("%03d", currentPerson.getId());
+        Log.d("DEBUG_SWIPE", "Sedang menyimpan swipe untuk ID: " + targetId);
 
         firestoreManager.saveSwipeAction(targetId, isLike);
 
-        currentIndex++; // Move next
+        currentIndex++; //  Move next
         showPerson(currentIndex); // Update screen
     }
 
