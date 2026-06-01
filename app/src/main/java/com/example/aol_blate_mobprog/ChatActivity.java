@@ -51,22 +51,43 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void fetchDataFromFirebase() {
+        // 1. Panggil manager HANYA untuk mendapatkan Email/ID sesi yang sedang aktif
         firestoreManager.getCurrentUser(new FirestoreManager.FirestoreCallback() {
             @Override
             public void onSuccess(Object result) {
+                User cachedUser = (User) result;
 
-                User user = (User) result;
+                // Ambil identifier unik user (sesuaikan jika di modelmu namanya getId())
+                String userEmail = cachedUser.getEmail();
 
-                List<String> acceptedIds = user.getAccepted();
+                // 2. TEMBAK ULANG KE FIRESTORE! Minta data paling "fresh" langsung dari server
+                db.collection("user")
+                        .whereEqualTo("email", userEmail)
+                        .get()
+                        .addOnSuccessListener(queryDocumentSnapshots -> {
+                            if (!queryDocumentSnapshots.isEmpty()) {
 
-                if (acceptedIds == null || acceptedIds.isEmpty()) {
-                    chatList.clear();
-                    adapter.notifyDataSetChanged();
-                    Log.d("CHAT", "User hasn't accepted anyone yet.");
-                    return;
-                }
+                                // Ambil dokumen user terbaru dari internet
+                                QueryDocumentSnapshot freshUserDoc = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
 
-                fetchMatches(acceptedIds);
+                                // Tarik array 'accepted' yang baru
+                                List<String> freshAcceptedIds = (List<String>) freshUserDoc.get("accepted");
+
+                                // Cek apakah listnya masih kosong
+                                if (freshAcceptedIds == null || freshAcceptedIds.isEmpty()) {
+                                    chatList.clear();
+                                    adapter.notifyDataSetChanged();
+                                    Log.d("CHAT", "User hasn't accepted anyone yet (Fresh check).");
+                                    return;
+                                }
+
+                                // 3. Jika ada isinya, barulah panggil fungsi pencarian
+                                fetchMatches(freshAcceptedIds);
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(ChatActivity.this, "Gagal menyegarkan data chat", Toast.LENGTH_SHORT).show();
+                        });
             }
 
             @Override
@@ -78,30 +99,31 @@ public class ChatActivity extends AppCompatActivity {
 
     // Helper method
     private void fetchMatches(List<String> acceptedIds) {
-        Log.d("CHAT_DEBUG", "I am looking for these IDs: " + acceptedIds.toString());
+        // 1. Bersihkan semua ID yang masuk dari database agar tidak ada spasi/enter
+        List<String> cleanAcceptedIds = new ArrayList<>();
+        for (String id : acceptedIds) {
+            cleanAcceptedIds.add(id.trim()); // .trim() akan membuang spasi/enter yang tidak sengaja tersimpan
+        }
+
+        Log.d("CHAT_DEBUG", "Cleaning IDs... Clean list: " + cleanAcceptedIds.toString());
 
         db.collection("person")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         chatList.clear();
-                        Log.d("CHAT_DEBUG", "I found " + task.getResult().size() + " people in the 'person' collection.");
 
                         for (QueryDocumentSnapshot doc : task.getResult()) {
-                            String personId = doc.getId();
-                            Log.d("CHAT_DEBUG", "Checking Person ID: '" + personId + "'");
+                            String personId = doc.getId().trim(); // Bersihkan juga ID dari dokumen
 
-                            // cek dulu penting
-                            if (acceptedIds.contains(personId)) {
+                            // 2. Sekarang bandingkan dengan list yang sudah bersih
+                            if (cleanAcceptedIds.contains(personId)) {
                                 Log.d("CHAT_DEBUG", "MATCH FOUND! Adding " + personId);
 
+                                // ... (lanjutkan logika pengambilan data name, about, profile)
                                 String name = doc.getString("name");
                                 String about = doc.getString("about");
                                 String profile = doc.getString("profile");
-
-                                if (name == null) name = "Unknown User";
-                                if (about == null) about = "Let's start chatting!";
-                                if (profile == null) profile = "avatar_1";
 
                                 chatList.add(new Chat(name, about, profile));
                             } else {
@@ -109,8 +131,6 @@ public class ChatActivity extends AppCompatActivity {
                             }
                         }
                         adapter.notifyDataSetChanged();
-                    } else {
-                        Log.e("CHAT_DEBUG", "Error fetching people: ", task.getException());
                     }
                 });
     }
