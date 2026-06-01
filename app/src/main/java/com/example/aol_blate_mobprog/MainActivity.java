@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,7 +19,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,16 +32,18 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 101;
 
-    EditText email;
-    EditText password;
-    EditText confirmPassword;
+    // Menggunakan Material Components
+    TextInputLayout tilEmail, tilPassword, tilConfirmPassword;
+    TextInputEditText etEmail, etPassword, etConfirmPassword;
     CheckBox chkTerms;
-
-    Button loginButton;
+    Button btnSignUp;
     ImageView btnHelp;
 
     @Override
@@ -66,14 +66,20 @@ public class MainActivity extends AppCompatActivity {
 
         checkAndRequestPermissions();
 
-        // Initialize Views
-        email = findViewById(R.id.editTextTextEmailAddress);
-        password = findViewById(R.id.editTextNumberPassword2);
-        confirmPassword = findViewById(R.id.editTextConfirmPassword);
-        chkTerms = findViewById(R.id.checkBox);
-        TextView tv = findViewById(R.id.tvlinktoPage);
+        // Initialize Views dengan ID baru yang lebih bersih
+        tilEmail = findViewById(R.id.tilEmail);
+        tilPassword = findViewById(R.id.tilPassword);
+        tilConfirmPassword = findViewById(R.id.tilConfirmPassword);
 
-        // Link to Login
+        etEmail = findViewById(R.id.etEmail);
+        etPassword = findViewById(R.id.etPassword);
+        etConfirmPassword = findViewById(R.id.etConfirmPassword);
+
+        chkTerms = findViewById(R.id.chkTerms);
+        btnSignUp = findViewById(R.id.btnSignUp);
+        TextView tvLoginLink = findViewById(R.id.tvlinktoPage);
+
+        // Styling Link to Login agar lebih menyatu dengan tema
         String text = "Already Have an Account? Login";
         SpannableString ss = new SpannableString(text);
 
@@ -87,79 +93,105 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void updateDrawState(TextPaint ds) {
                 super.updateDrawState(ds);
-                ds.setUnderlineText(true);
-                ds.setColor(Color.BLUE);
+                ds.setUnderlineText(true); // Garis bawah tetap ada
+                ds.setColor(Color.parseColor("#E91E63")); // Warna Pink sesuai tema
             }
         };
 
         ss.setSpan(clickableSpan, 0, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        tv.setText(ss);
-        tv.setMovementMethod(LinkMovementMethod.getInstance());
-        tv.setHighlightColor(Color.TRANSPARENT);
+        tvLoginLink.setText(ss);
+        tvLoginLink.setMovementMethod(LinkMovementMethod.getInstance());
+        tvLoginLink.setHighlightColor(Color.TRANSPARENT);
 
-        loginButton = findViewById(R.id.button2);
-
-        loginButton.setOnClickListener(v -> {
-
+        // Logic Sign Up
+        btnSignUp.setOnClickListener(v -> {
             Animation shake = AnimationUtils.loadAnimation(MainActivity.this, R.anim.shake);
 
-            String emailInput = email.getText().toString().trim();
-            String passwordInput = password.getText().toString().trim();
-            String confirmPasswordInput = confirmPassword.getText().toString().trim();
+            String emailInput = etEmail.getText().toString().trim();
+            String passwordInput = etPassword.getText().toString().trim();
+            String confirmPasswordInput = etConfirmPassword.getText().toString().trim();
             boolean isTermsChecked = chkTerms.isChecked();
 
             boolean isValid = true;
 
-            // Logic check email
+            // Bersihkan error state sebelumnya
+            tilEmail.setError(null);
+            tilPassword.setError(null);
+            tilConfirmPassword.setError(null);
+
+            // Validasi Email
             if (!emailInput.contains("@gmail.com")) {
-                email.setError("Email must contain @gmail.com");
-                email.startAnimation(shake);
-                email.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.SRC_ATOP);
+                tilEmail.setError("Email must contain @gmail.com");
+                tilEmail.startAnimation(shake);
                 isValid = false;
-            } else {
-                email.getBackground().clearColorFilter();
             }
 
-            // Logic check password
+            // Validasi Password
             if (passwordInput.length() < 8) {
-                password.setError("Password must be at least 8 characters");
-                password.startAnimation(shake);
-                password.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.SRC_ATOP);
+                tilPassword.setError("Password must be at least 8 characters");
+                tilPassword.startAnimation(shake);
                 isValid = false;
-            } else {
-                password.getBackground().clearColorFilter();
             }
 
-            // Logic confirm password
+            // Validasi Confirm Password
             if (!passwordInput.equals(confirmPasswordInput)) {
-                confirmPassword.setError("Passwords do not match");
-                confirmPassword.startAnimation(shake);
-                confirmPassword.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.SRC_ATOP);
+                tilConfirmPassword.setError("Passwords do not match");
+                tilConfirmPassword.startAnimation(shake);
                 isValid = false;
-            } else {
-                confirmPassword.getBackground().clearColorFilter();
             }
 
-            // Terms and conditions
+            // Validasi Terms & Conditions
             if (!isTermsChecked) {
                 chkTerms.startAnimation(shake);
                 Toast.makeText(MainActivity.this, "You must agree to the terms and conditions", Toast.LENGTH_SHORT).show();
                 isValid = false;
             }
 
+            // Jika validasi lokal gagal, hentikan proses di sini
             if (!isValid) return;
 
-            // Pass Email AND Password to the next step
-            Intent intent = new Intent(MainActivity.this, AddProfileDetailActivity.class);
-            intent.putExtra("email", emailInput);
-            intent.putExtra("password", passwordInput); // ADDED THIS
-            startActivity(intent);
+            // --- MULAI PENGECEKAN EMAIL KE FIRESTORE ---
 
-            Toast.makeText(MainActivity.this, "Step 1 Complete! Please fill details.", Toast.LENGTH_SHORT).show();
+            // Nonaktifkan tombol sementara agar user tidak spam klik saat loading
+            btnSignUp.setEnabled(false);
+            btnSignUp.setText("Checking...");
+
+            com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+
+            db.collection("user")
+                    .whereEqualTo("email", emailInput) // Cari dokumen yang emailnya sama
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        // Kembalikan tombol ke kondisi semula
+                        btnSignUp.setEnabled(true);
+                        btnSignUp.setText("Sign Up");
+
+                        if (task.isSuccessful()) {
+                            if (!task.getResult().isEmpty()) {
+                                // Jika hasilnya TIDAK kosong, berarti email sudah terdaftar!
+                                tilEmail.setError("This email is already registered!");
+                                tilEmail.startAnimation(shake);
+                            } else {
+                                // Jika hasilnya KOSONG, email aman digunakan. Lanjut ke halaman berikutnya!
+                                Intent intent = new Intent(MainActivity.this, AddProfileDetailActivity.class);
+                                intent.putExtra("email", emailInput);
+                                intent.putExtra("password", passwordInput);
+                                startActivity(intent);
+
+                                Toast.makeText(MainActivity.this, "Step 1 Complete! Please fill details.", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            // Jika query gagal (misal tidak ada internet / rules diblokir)
+                            Toast.makeText(MainActivity.this, "Failed to check email. Try again.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         });
 
         showHelpDialog();
     }
+
+    // ... (Fungsi checkAndRequestPermissions() dan showHelpDialog() tetap sama persis seperti kode aslimu) ...
+    // Saya persingkat di sini agar kamu tidak pusing, tapi JANGAN dihapus dari file aslimu ya!
 
     private void checkAndRequestPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
