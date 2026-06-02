@@ -2,6 +2,7 @@ package com.example.aol_blate_mobprog;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.aol_blate_mobprog.models.User;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -100,6 +102,21 @@ public class LoginActivity extends AppCompatActivity {
             public void onSuccess(Object result) {
                 btnLogin.setEnabled(true);
                 btnLogin.setText("Login");
+
+                String userId = "";
+
+                if (result instanceof String) {
+                    userId = (String) result;
+                } else {
+                    User loggedInUser = (User) result;
+                    userId = String.valueOf(loggedInUser.getId());
+                }
+
+                SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString("saved_id", userId);
+                editor.apply();
+
 
                 Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
 

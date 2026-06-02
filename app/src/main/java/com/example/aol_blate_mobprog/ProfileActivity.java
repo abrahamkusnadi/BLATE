@@ -6,66 +6,45 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.Calendar;
+import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
+
+    private TextView tvName, tvGender, tvAbout, tvHobby1, tvAge;
+    private Button btnEdit;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        TextView tvName = findViewById(R.id.NameProfileTV);
-        TextView tvGender = findViewById(R.id.GenderProfileTV);
-        TextView tvAbout = findViewById(R.id.AboutProfileTV);
-        TextView tvHobby1 = findViewById(R.id.Hobby1ProfileTV);
-        TextView tvAge = findViewById(R.id.AgeProfileTV);
-        Button btnEdit = findViewById(R.id.EditProfileBtn);
+        // Inisialisasi UI
+        tvName = findViewById(R.id.NameProfileTV);
+        tvGender = findViewById(R.id.GenderProfileTV);
+        tvAbout = findViewById(R.id.AboutProfileTV);
+        tvHobby1 = findViewById(R.id.Hobby1ProfileTV);
+        tvAge = findViewById(R.id.AgeProfileTV);
+        btnEdit = findViewById(R.id.EditProfileBtn);
 
-        // retrieve Data
-        SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
+        db = FirebaseFirestore.getInstance();
 
-        String savedName = prefs.getString("saved_name", "No Name");
-        String savedGender = prefs.getString("saved_gender", "-");
-        String savedDob = prefs.getString("saved_dob", "");
-        String savedHobby = prefs.getString("saved_hobby", "");
-        String savedAddress = prefs.getString("saved_address", "-");
-        String savedReligion = prefs.getString("saved_religion", "-");
+        // Ambil data langsung dari Firebase, bukan SharedPreferences lagi
+        fetchProfileFromFirebase();
 
-        // Set Nama & Gender
-        tvName.setText(savedName);
-        tvGender.setText("Gender : " + savedGender);
-
-        // Set Hobi (Logic: Hanya tampilkan jika tidak kosong)
-        if (!savedHobby.isEmpty() && !savedHobby.equals("-")) {
-            tvHobby1.setText(savedHobby);
-            tvHobby1.setVisibility(View.VISIBLE);
-        } else {
-            tvHobby1.setVisibility(View.GONE);
-        }
-
-        // Set About (Tambahkan Agama di sini)
-        String aboutText = "Hi! I am " + savedName + ".\n" +
-                "Currently living in " + savedAddress + ".\n" +
-                "Born on " + (savedDob.isEmpty() ? "-" : savedDob) + ".\n" +
-                "Religion: " + savedReligion + "."; // <--- Tampilkan Agama
-        tvAbout.setText(aboutText);
-
-        // Hitung Umur
-        if (!savedDob.isEmpty()) {
-            String ageString = calculateAge(savedDob);
-            tvAge.setText("Age : " + ageString);
-            tvAge.setVisibility(View.VISIBLE);
-        } else {
-            tvAge.setVisibility(View.GONE);
-        }
-
-        // Tombol Edit (Kirim sinyal Edit Mode)
+        // Tombol Edit
         btnEdit.setOnClickListener(v -> {
             Intent intent = new Intent(ProfileActivity.this, AddProfileDetailActivity.class);
             intent.putExtra("IS_EDIT_MODE", true);
@@ -74,6 +53,76 @@ public class ProfileActivity extends AppCompatActivity {
 
         setupNavbar();
         showHelpDialog();
+    }
+
+    private void fetchProfileFromFirebase() {
+        Log.d("PROFILE_DEBUG", "Fetching user profile from Firestore...");
+
+        // 1. Ambil Custom ID dari SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
+        String currentUserId = prefs.getString("saved_id", null);
+
+        if (currentUserId == null || currentUserId.isEmpty()) {
+            Log.e("PROFILE_DEBUG", "No user ID found in SharedPreferences! User needs to login.");
+            return;
+        }
+
+        Log.d("PROFILE_DEBUG", "Looking for document with ID: " + currentUserId);
+
+        db.collection("user").document(currentUserId).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot doc = task.getResult();
+                        if (doc.exists()) {
+                            Log.d("PROFILE_DEBUG", "Profile data found!");
+
+                            String savedName = doc.getString("name");
+
+                            Boolean isMale = doc.getBoolean("gender");
+                            String savedGender = (isMale != null && isMale) ? "Male" : "Female";
+
+                            String savedDob = doc.getString("dob");
+                            String savedAddress = doc.getString("domicile");
+                            String savedReligion = doc.getString("religion");
+
+                            List<String> hobbies = (List<String>) doc.get("hobbies");
+                            String savedHobby = (hobbies != null && !hobbies.isEmpty()) ? hobbies.get(0) : "";
+
+                            if (savedName == null) savedName = "No Name";
+                            if (savedDob == null) savedDob = "";
+                            if (savedAddress == null) savedAddress = "-";
+                            if (savedReligion == null) savedReligion = "-";
+
+                            tvName.setText(savedName);
+                            tvGender.setText("Gender : " + savedGender);
+
+                            if (!savedHobby.isEmpty()) {
+                                tvHobby1.setText(savedHobby);
+                                tvHobby1.setVisibility(View.VISIBLE);
+                            } else {
+                                tvHobby1.setVisibility(View.GONE);
+                            }
+
+                            String aboutText = "Hi! I am " + savedName + ".\n" +
+                                    "Currently living in " + savedAddress + ".\n" +
+                                    "Born on " + (savedDob.isEmpty() ? "-" : savedDob) + ".\n" +
+                                    "Religion: " + savedReligion + ".";
+                            tvAbout.setText(aboutText);
+
+                            if (!savedDob.isEmpty()) {
+                                String ageString = calculateAge(savedDob);
+                                tvAge.setText("Age : " + ageString);
+                                tvAge.setVisibility(View.VISIBLE);
+                            } else {
+                                tvAge.setVisibility(View.GONE);
+                            }
+                        } else {
+                            Log.d("PROFILE_DEBUG", "No such document exists in Firestore!");
+                        }
+                    } else {
+                        Log.e("PROFILE_DEBUG", "Failed to fetch profile", task.getException());
+                    }
+                });
     }
 
     private String calculateAge(String dobString) {
@@ -101,18 +150,21 @@ public class ProfileActivity extends AppCompatActivity {
             navChat.setOnClickListener(v-> {
                 Intent intent = new Intent(this, ChatActivity.class);
                 startActivity(intent);
+                finishAffinity();
             });
         }
         if (navHistory != null) {
             navHistory.setOnClickListener(v->{
                 Intent intent = new Intent(this, HistoryActivity.class);
                 startActivity(intent);
+                finishAffinity();
             });
         }
         if (navDiscover != null) {
             navDiscover.setOnClickListener(v -> {
                 Intent intent = new Intent(this, DiscoverActivity.class);
                 startActivity(intent);
+                finishAffinity();
             });
         }
     }
