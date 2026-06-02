@@ -145,9 +145,8 @@ public class DiscoverActivity extends AppCompatActivity {
         // Di dalam handleSwipe
         // Simpan ID sebagai String yang diformat menjadi 3 digit (001)
         // agar SAMA PERSIS dengan Document ID di Firestore
-        String targetId = String.format("%03d", currentPerson.getId());
-        Log.d("DEBUG_SWIPE", "Sedang menyimpan swipe untuk ID: " + targetId);
-
+        String targetId = String.valueOf(currentPerson.getId()).trim();
+        Log.d("DEBUG_SWIPE", "Saving swipe action for ID: " + targetId + " | isLike: " + isLike);
         firestoreManager.saveSwipeAction(targetId, isLike);
 
         currentIndex++; //  Move next

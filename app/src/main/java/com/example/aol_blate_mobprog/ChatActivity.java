@@ -113,8 +113,11 @@ public class ChatActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         chatList.clear();
 
+                        Log.d("CHAT_DEBUG", "Found " + task.getResult().size() + " records in 'person' collection.");
+
                         for (QueryDocumentSnapshot doc : task.getResult()) {
                             String personId = doc.getId().trim(); // Bersihkan juga ID dari dokumen
+                            Log.d("CHAT_DEBUG", "Checking Document ID: '" + personId + "'");
 
                             // 2. Sekarang bandingkan dengan list yang sudah bersih
                             if (cleanAcceptedIds.contains(personId)) {
@@ -125,12 +128,18 @@ public class ChatActivity extends AppCompatActivity {
                                 String about = doc.getString("about");
                                 String profile = doc.getString("profile");
 
+                                if (name == null) name = "Unknown User";
+                                if (about == null) about = "Let's start chatting";
+                                if (profile == null) profile == "avatar_1";
+
                                 chatList.add(new Chat(name, about, profile));
                             } else {
-                                Log.d("CHAT_DEBUG", "No match for " + personId);
+                                Log.d("CHAT_DEBUG", "No match for ID: " + personId);
                             }
                         }
                         adapter.notifyDataSetChanged();
+                    } else {
+                        Log.e("CHAT_DEBUG", "Errer fetching person data: ", task.getException());
                     }
                 });
     }
