@@ -130,7 +130,7 @@ public class ChatActivity extends AppCompatActivity {
 
                                 if (name == null) name = "Unknown User";
                                 if (about == null) about = "Let's start chatting";
-                                if (profile == null) profile == "avatar_1";
+                                if (profile == null) profile = "avatar_1";
 
                                 chatList.add(new Chat(name, about, profile));
                             } else {
