@@ -47,16 +47,19 @@
             android:backgroundTint="#F48FB1"
             android:padding="16dp"
             android:layout_marginEnd="8dp">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Likes"
                 android:textSize="16sp"
                 android:textColor="@android:color/black"/>
+
             <TextView
+                android:id="@+id/tvStatsLikeCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="3"
+                android:text="0"
                 android:textSize="40sp"
                 android:textStyle="bold"
                 android:textColor="#E91E63"/>
@@ -78,10 +81,12 @@
                 android:text="Dislikes"
                 android:textColor="@android:color/black"
                 android:textSize="16sp" />
+
             <TextView
+                android:id="@+id/tvStatsDislikeCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2"
+                android:text="0"
                 android:textSize="40sp"
                 android:textStyle="bold"
                 android:textColor="#FBC02D"/>

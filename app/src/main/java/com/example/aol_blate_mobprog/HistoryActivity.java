@@ -4,8 +4,8 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -13,18 +13,25 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.aol_blate_mobprog.models.History;
+import com.example.aol_blate_mobprog.models.User;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class HistoryActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private HistoryAdapter adapter;
-
-    // master list buat yang ALL list
+    private FirestoreManager firestoreManager;
+    private FirebaseFirestore db;
     private ArrayList<History> masterList = new ArrayList<>();
     private ArrayList<History> displayList = new ArrayList<>();
 
+    private TextView tvStatsLikeCount, tvStatsDislikeCount;
     private TextView btnAll, btnLike, btnDislike;
 
     @Override
@@ -32,12 +39,13 @@ public class HistoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        // pake dummy data manual aja, ga pake firebase yang ini
-        setupDummyData();
+        firestoreManager = FirestoreManager.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         // setup recyclerview
         recyclerView = findViewById(R.id.rvHistory);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setHasFixedSize(true);
         // setup adapter
         adapter = new HistoryAdapter(displayList, this);
         recyclerView.setAdapter(adapter);
@@ -47,6 +55,9 @@ public class HistoryActivity extends AppCompatActivity {
         btnLike = findViewById(R.id.btnFilterLike);
         btnDislike = findViewById(R.id.btnFilterDislike);
 
+        tvStatsLikeCount = findViewById(R.id.tvStatsLikeCount);
+        tvStatsDislikeCount = findViewById(R.id.tvStatsDislikeCount);
+
         // setup buat logic klik tombol
         btnAll.setOnClickListener(v -> filterList("ALL"));
         btnLike.setOnClickListener(v -> filterList("Like"));
@@ -55,43 +66,97 @@ public class HistoryActivity extends AppCompatActivity {
         // setup navbar
         setupNavbar();
 
-        // default -> tampilkan semua
-        filterList("ALL");
-
         // setup tombol help
         showHelpDialog();
+
+        fetchUserHistoryFromFirebase();
     }
 
-    private void setupDummyData() {
-        // add dummy data
-        masterList.add(new History("Martin Scorcesse", "Like", "14 Dec 2025", "user_martin"));
-        masterList.add(new History("Sophia Monica", "Dislike", "13 Dec 2025", "user_sophia"));
-        masterList.add(new History("Made Artha", "Like", "12 Dec 2025", "user_madeartha"));
-        masterList.add(new History("Rina Wulandari", "Like", "10 Dec 2025", "user_rinawulandari"));
-        masterList.add(new History("Joji Similikiti", "Dislike", "08 Dec 2025", "user_joji"));
-    }
 
-    private void filterList(String type) {
-        displayList.clear(); //clear screen dulu
+    private void fetchUserHistoryFromFirebase() {
+        Log.d("HISTORY_DEBUG", "Starting to fetch user history...");
 
-        if (type.equals("ALL")) {
-            // masukin data semua
-            displayList.addAll(masterList);
-            updateButtonColor(btnAll);
-        } else {
-            // filtering
-            for (History item : masterList) {
-                if (item.getStatus().equalsIgnoreCase(type)) {
-                    displayList.add(item);
+        firestoreManager.getCurrentUser(new FirestoreManager.FirestoreCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                User currentUser = (User) result;
+
+                List<String> acceptedIds = currentUser.getAccepted() != null ? currentUser.getAccepted() : new ArrayList<>();
+                List<String> rejectedIds = currentUser.getRejected() != null ? currentUser.getRejected() : new ArrayList<>();
+
+                List<String> cleanAccepted = new ArrayList<>();
+                for (String id : acceptedIds) {
+                    cleanAccepted.add(id.trim());
                 }
-            }
-            // ubah warna
-            if (type.equals("Like")) updateButtonColor(btnLike);
-            else updateButtonColor(btnDislike);
-        }
 
-        // mengabari adapter kalau data berubah
-        adapter.notifyDataSetChanged();
+                List<String> cleanRejected = new ArrayList<>();
+                for (String id : rejectedIds) {
+                    cleanRejected.add(id.trim());
+                }
+
+                Log.d("HISTORY_DEBUG", "Accepted IDs: " + cleanAccepted.toString());
+                Log.d("HISTORY_DEBUG", "Rejected IDs: " + cleanRejected.toString());
+
+                fetchPersonDetails(cleanAccepted, cleanRejected);
+            }
+            @Override
+            public void onFailure(Exception e) {
+                Log.e("HISTORY_DEBUG", "Failed to fetch user history. ", e);
+            }
+        });
+    }
+
+    private void fetchPersonDetails(List<String> acceptedIds, List<String> rejectedIds) {
+        db.collection("person")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        masterList.clear();
+
+                        for (QueryDocumentSnapshot doc : task.getResult()) {
+                            String personId = doc.getId().trim();
+
+                            boolean isLiked = acceptedIds.contains(personId);
+                            boolean isDisliked = rejectedIds.contains(personId);
+
+                            if (isLiked || isDisliked) {
+                                String name = doc.getString("name");
+                                String profile = doc.getString("about");
+
+                                if (name == null) name = "Unknown User";
+                                if (profile == null) profile = "ic_launcher_background";
+
+                                String date = "Recently";
+                                String status = isLiked ? "Like" : "Dislike";
+
+                                masterList.add(new History(name, status, date, profile));
+                                Log.d("HISTORY_DEBUG", "Added to history: " + name + " | Status: " + status);
+                            }
+                        }
+
+                        int likedCount = 0;
+                        int dislikedCount = 0;
+
+                        for (History item : masterList) {
+                            if ("Like".equalsIgnoreCase(item.getStatus())) {
+                                likedCount++;
+                            } else if ("Dislike".equalsIgnoreCase(item.getStatus())) {
+                                dislikedCount++;
+                            }
+                        }
+
+                        if (btnAll != null) btnAll.setText("ALL (" + masterList.size() + ")");
+                        if (btnLike != null) btnLike.setText("Likes (" + likedCount + ")");
+                        if (btnDislike != null) btnDislike.setText("Dislikes (" + dislikedCount + ")");
+
+                        if (tvStatsLikeCount != null) tvStatsLikeCount.setText(String.valueOf(likedCount));
+                        if (tvStatsDislikeCount != null) tvStatsDislikeCount.setText(String.valueOf(dislikedCount));
+
+                        filterList("ALL");
+                    } else {
+                        Log.e("HISTORY_DEBUG", "Failed to fetch person details. ", task.getException());
+                    }
+                });
     }
 
     private void updateButtonColor(TextView activeButton) {
@@ -116,6 +181,28 @@ public class HistoryActivity extends AppCompatActivity {
         activeButton.setTextColor(textActive);
     }
 
+    private void filterList(String type) {
+        displayList.clear(); //clear screen dulu
+
+        if (type.equals("ALL")) {
+            // masukin data semua
+            displayList.addAll(masterList);
+            updateButtonColor(btnAll);
+        } else {
+            // filtering
+            for (History item : masterList) {
+                if (item.getStatus().equalsIgnoreCase(type)) {
+                    displayList.add(item);
+                }
+            }
+            // ubah warna
+            if (type.equals("Like")) updateButtonColor(btnLike);
+            else updateButtonColor(btnDislike);
+        }
+
+        // mengabari adapter kalau data berubah
+        adapter.notifyDataSetChanged();
+    }
     private void setRoundedBackground(TextView view, int color) {
         android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
         shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
