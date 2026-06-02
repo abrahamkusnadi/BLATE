@@ -190,8 +190,6 @@ public class MainActivity extends AppCompatActivity {
         showHelpDialog();
     }
 
-    // ... (Fungsi checkAndRequestPermissions() dan showHelpDialog() tetap sama persis seperti kode aslimu) ...
-    // Saya persingkat di sini agar kamu tidak pusing, tapi JANGAN dihapus dari file aslimu ya!
 
     private void checkAndRequestPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
