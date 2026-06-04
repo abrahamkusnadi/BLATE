@@ -17,8 +17,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -127,18 +130,34 @@ public class ProfileActivity extends AppCompatActivity {
 
     private String calculateAge(String dobString) {
         try {
-            String yearString = dobString.replaceAll("[^0-9]", "");
-            if (yearString.length() >= 4) {
-                String yearOnly = yearString.substring(yearString.length() - 4);
-                int birthYear = Integer.parseInt(yearOnly);
-                int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-                int age = currentYear - birthYear;
-                return String.valueOf(age);
+            Date birthDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(dobString);
+
+            if (birthDate == null) {
+                return "-";
             }
+
+            Calendar dob = Calendar.getInstance();
+            dob.setTime(birthDate);
+
+            Calendar today = Calendar.getInstance();
+
+            int age = today.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
+
+            if (today.get(Calendar.MONTH) < dob.get(Calendar.MONTH)) {
+                age--;
+            } else if (today.get(Calendar.MONTH) == dob.get(Calendar.MONTH) && today.get(Calendar.DAY_OF_MONTH) < dob.get(Calendar.DAY_OF_MONTH)) {
+                age--;
+            }
+
+            if (age < 0) {
+                age = 0;
+            }
+
+            return String.valueOf(age);
         } catch (Exception e) {
             return "-";
         }
-        return "-";
+
     }
 
     private void setupNavbar(){
