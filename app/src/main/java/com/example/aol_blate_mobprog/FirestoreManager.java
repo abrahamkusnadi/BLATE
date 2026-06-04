@@ -9,6 +9,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class FirestoreManager {
 
@@ -74,6 +75,16 @@ public class FirestoreManager {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    public void updateUserData(String documentId, Map<String, Object> updates, FirestoreCallback callback){
+        if (documentId == null || documentId.isEmpty()) {
+            callback.onFailure(new Exception("Invalid User ID. Cannot update data"));
+            return;
+        }
+
+        usersRef.document(documentId).update(updates)
+                .addOnSuccessListener(aVoid -> callback.onSuccess("Update Successful"))
+                .addOnFailureListener(callback::onFailure);
+    }
     public void getAllCandidates(FirestoreCallback callback) {
         peopleRef.get().addOnSuccessListener(querySnapshot -> {
             List<Person> list = new ArrayList<>();

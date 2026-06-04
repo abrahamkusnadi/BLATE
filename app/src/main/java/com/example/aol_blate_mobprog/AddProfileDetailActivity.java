@@ -20,9 +20,12 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.aol_blate_mobprog.models.User; // Import Model User
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AddProfileDetailActivity extends AppCompatActivity {
 
@@ -57,22 +60,22 @@ public class AddProfileDetailActivity extends AppCompatActivity {
         regPassword = intent.getStringExtra("password");
 
         setupSpinners();
-        loadSavedData();
+
+        if(validateInput()) {
+            fetchOldDataFromFirebase();
+        } else {
+            loadSavedData();
+        }
 
         btnConfirm.setOnClickListener(v -> {
-            if(validateInput()) {
+            if (validateInput()) {
                 if (isEditMode) {
-                    // --- MODE EDIT (Local/SharedPreferences) ---
-                    saveDataToMemory();
-                    Intent intentEdit = new Intent(AddProfileDetailActivity.this, ProfileActivity.class);
-                    intentEdit.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intentEdit);
-                    finish();
+                    updateUserInFirebase();
                 } else {
-                    // --- MODE REGISTER (Save to Firebase) ---
                     registerUserToFirebase();
                 }
             }
+
         });
 
         showHelpDialog();
@@ -126,9 +129,11 @@ public class AddProfileDetailActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Object result) {
                 Toast.makeText(AddProfileDetailActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
-
-                //Simpan informasi dasar ke SharedPrefs untuk konsistensi tampilan 
                 saveDataToMemory();
+                SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString("saved_id", String.valueOf(userId));
+                editor.apply();
 
                 // Go to Discover
                 Intent intentDis = new Intent(AddProfileDetailActivity.this, DiscoverActivity.class);
@@ -144,6 +149,61 @@ public class AddProfileDetailActivity extends AppCompatActivity {
         });
     }
 
+    private void updateUserInFirebase() {
+        String name = etUsername.getText().toString().trim();
+        String dob = etDob.getText().toString().trim();
+        String address = etAddress.getText().toString().trim();
+        String hobby = spHobbies.getSelectedItem().toString();
+        String job = spJob.getSelectedItem().toString();
+        String religion = spReligion.getSelectedItem().toString();
+
+        int selectedId = rgGender.getCheckedRadioButtonId();
+        boolean isMale = true;
+        if (selectedId != -1) {
+            RadioButton selectedRadioButton = findViewById(selectedId);
+            String genderStr = selectedRadioButton.getText().toString();
+            if(genderStr.equalsIgnoreCase("Female")) isMale = false;
+        }
+
+        SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
+        String currentUserId = prefs.getString("saved_id", "");
+
+        if (currentUserId.isEmpty()) {
+            Toast.makeText(this, "User ID not found. Please log in again.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Map<String, Object> updatedData = new HashMap<>();
+        if (!name.isEmpty()) updatedData.put("name", name);
+        if (!dob.isEmpty()) updatedData.put("dob", dob);
+        if (!address.isEmpty()) updatedData.put("domicile", address);
+
+        updatedData.put("current_job", job);
+        updatedData.put("religion", religion);
+        updatedData.put("gender", isMale);
+        updatedData.put("hobbies", Collections.singletonList(hobby));
+
+
+        FirestoreManager.getInstance().updateUserData(String.valueOf(currentUserId), updatedData, new FirestoreManager.FirestoreCallback() {
+
+            @Override
+            public void onSuccess(Object result) {
+                saveDataToMemory();
+                Toast.makeText(AddProfileDetailActivity.this, "Profile Updated!", Toast.LENGTH_SHORT).show();
+                Intent pindah = new Intent(AddProfileDetailActivity.this, ProfileActivity.class);
+                pindah.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(pindah);
+                finish();
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(AddProfileDetailActivity.this, "Update Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+
+    }
+
     private void setupSpinners() {
         String[] hobbies = new String[]{"Traveling", "Culinary", "Gaming", "Reading", "Sports"};
         ArrayAdapter<String> hobbiesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, hobbies);
@@ -157,6 +217,49 @@ public class AddProfileDetailActivity extends AppCompatActivity {
         ArrayAdapter<CharSequence> religionAdapter = ArrayAdapter.createFromResource(this, R.array.religion_list, android.R.layout.simple_spinner_item);
         religionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spReligion.setAdapter(religionAdapter);
+    }
+
+    private void fetchOldDataFromFirebase() {
+        SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
+        String currentUserId = prefs.getString("saved_id", "");
+
+        if (currentUserId.isEmpty()) return;
+
+        FirebaseFirestore.getInstance().collection("user").document(currentUserId).get()
+                .addOnSuccessListener(document -> {
+                    if (document.exists()) {
+                        User oldUser = document.toObject(User.class);
+                        if (oldUser != null) {
+                            etUsername.setText(oldUser.getName());
+                            etDob.setText(oldUser.getDob());
+                            etAddress.setText(oldUser.getDomicile());
+
+                            if (oldUser.isGender()) {
+                                rgGender.check(R.id.maleOption);
+                            } else {
+                                rgGender.check(R.id.femaleOption);
+                            }
+
+                            if (oldUser.getHobbies() != null && !oldUser.getHobbies().isEmpty()) {
+                                String hobby = oldUser.getHobbies().get(0);
+                                ArrayAdapter<String> adapter = (ArrayAdapter<String>) spHobbies.getAdapter();
+                                int position = adapter.getPosition(hobby);
+                                if (position >= 0) spHobbies.setSelection(position);
+                            }
+
+                            ArrayAdapter<CharSequence> jobAdapter = (ArrayAdapter<CharSequence>) spJob.getAdapter();
+                            int jobPosition = jobAdapter.getPosition(oldUser.getCurrent_job());
+                            if (jobPosition >= 0) spJob.setSelection(jobPosition);
+
+                            ArrayAdapter<CharSequence> religionAdapter = (ArrayAdapter<CharSequence>) spReligion.getAdapter();
+                            int religionPosition = religionAdapter.getPosition(oldUser.getReligion());
+                            if (religionPosition >= 0) spReligion.setSelection(religionPosition);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to load old data", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void loadSavedData() {
@@ -195,6 +298,9 @@ public class AddProfileDetailActivity extends AppCompatActivity {
     }
 
     private boolean validateInput() {
+        if (isEditMode) {
+            return true;
+        }
         if (etUsername.getText().toString().isEmpty()) {
             etUsername.setError("Username required");
             return false;
@@ -223,9 +329,9 @@ public class AddProfileDetailActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
-        editor.putString("saved_name", name);
-        editor.putString("saved_dob", dob);
-        editor.putString("saved_address", address);
+        if (!name.isEmpty()) editor.putString("saved_name", name);
+        if (!dob.isEmpty()) editor.putString("saved_dob", dob);
+        if (!address.isEmpty()) editor.putString("saved_address", address);
         editor.putString("saved_hobby", hobby);
         editor.putString("saved_gender", gender);
         editor.putString("saved_religion", religion);
