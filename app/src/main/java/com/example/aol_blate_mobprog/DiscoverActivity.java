@@ -25,7 +25,7 @@ public class DiscoverActivity extends AppCompatActivity {
 
     // UI Components
     private ImageView profileImage;
-    private TextView tvName, tvJob, tvNoData; // Added tvNoData (Optional)
+    private TextView tvName, tvJob, tvLocation;
     private View btnLike, btnDislike;
 
     @Override
@@ -40,6 +40,7 @@ public class DiscoverActivity extends AppCompatActivity {
         profileImage = findViewById(R.id.ProfileCardImg);
         tvName = findViewById(R.id.NameageCardTV);
         tvJob = findViewById(R.id.JobCardTV);
+        tvLocation = findViewById(R.id.LocationCardTV);
 
         // Note: We REMOVED tvAge because we will add age to tvName
 
@@ -128,6 +129,7 @@ public class DiscoverActivity extends AppCompatActivity {
 
         if (tvName != null) tvName.setText(person.getName() + ", " + age);
         if (tvJob != null) tvJob.setText(person.getCurrent_job());
+        if (tvLocation != null && person.getDomicile() != null) tvLocation.setText(person.getDomicile());
 
         String profileName = person.getProfile();
         int resId = 0;
@@ -155,23 +157,18 @@ public class DiscoverActivity extends AppCompatActivity {
 
     // --- NEW HELPER METHOD TO HIDE/SHOW UI ---
     private void toggleEmptyState(boolean isEmpty) {
-        int visibility = isEmpty ? View.GONE : View.VISIBLE;
+        View cardContainer = findViewById(R.id.layoutCardPerson);
+        View btnContainer = findViewById(R.id.DiscoverBtnContainer);
+        View emptyStateLayout = findViewById(R.id.layoutEmptyState);
 
-        // Hide/Show the card elements
-        if (profileImage != null) profileImage.setVisibility(visibility);
-        if (tvName != null) tvName.setVisibility(visibility);
-        if (tvJob != null) tvJob.setVisibility(visibility);
-
-        // Hide/Show the buttons
-        if (btnLike != null) btnLike.setVisibility(visibility);
-        if (btnDislike != null) btnDislike.setVisibility(visibility);
-
-        // Optional: Show a "No Users" text if everything is gone
-        if (tvNoData != null) {
-            tvNoData.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
-        } else if (isEmpty) {
-            // If you don't have a specific textview, just toast
-            Toast.makeText(this, "No more profiles nearby!", Toast.LENGTH_SHORT).show();
+        if (isEmpty) {
+            if (cardContainer != null) cardContainer.setVisibility(View.GONE);
+            if (btnContainer != null) btnContainer.setVisibility(View.GONE);
+            if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.VISIBLE);
+        } else {
+            if (cardContainer != null) cardContainer.setVisibility(View.VISIBLE);
+            if (btnContainer != null) btnContainer.setVisibility(View.VISIBLE);
+            if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.GONE);
         }
     }
 
