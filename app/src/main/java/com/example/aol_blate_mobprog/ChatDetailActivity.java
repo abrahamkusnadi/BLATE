@@ -24,6 +24,7 @@ public class ChatDetailActivity extends AppCompatActivity {
     private ImageView btnSend, btnBack;
     private TextView tvName;
     private String name, imageStr;
+    private ImageView btnOpenProfile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,23 +37,17 @@ public class ChatDetailActivity extends AppCompatActivity {
         btnSend = findViewById(R.id.btnSend);
         btnBack = findViewById(R.id.btnBack);
         tvName = findViewById(R.id.tvChatName);
+        btnOpenProfile = findViewById(R.id.OpenProfileChatDetailImg);
+
 
         // get nama dari chatactivity
         name = getIntent().getStringExtra("userName");
         imageStr = getIntent().getStringExtra("userImage");
         if(name != null) tvName.setText(name);
-        if(imageStr != null && !imageStr.isEmpty()) {
-            int resId = getResources().getIdentifier(imageStr.toLowerCase(), "drawable", getPackageName());
-            if (resId != 0) {
-                btnSend.setImageResource(resId);
-            } else {
-                btnSend.setImageResource(R.drawable.ic_launcher_background);
-            }
-        }
 
         // setup rv
         messageList = new ArrayList<>();
-        adapter = new MessageAdapter(messageList, this, imageStr);
+        adapter = new MessageAdapter(messageList, this, imageStr, name);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
@@ -72,8 +67,6 @@ public class ChatDetailActivity extends AppCompatActivity {
 
         // setup button back
         btnBack.setOnClickListener(v -> finish());
-
-        ImageView btnOpenProfile = findViewById(R.id.OpenProfileChatDetailImg);
 
         if (btnOpenProfile != null) {
             btnOpenProfile.setOnClickListener(v -> {

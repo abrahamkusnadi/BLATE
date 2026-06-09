@@ -9,6 +9,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.aol_blate_mobprog.models.Person;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
 public class ChatProfileActivity extends AppCompatActivity {
 
     private ImageView ivProfile, btnBack;
@@ -77,7 +82,8 @@ public class ChatProfileActivity extends AppCompatActivity {
         tvJob.setText("Current Job: " + p.getCurrent_job());
 
         //hitung umurnya
-        tvAge.setText("Age: " + p.getDob());
+        String age = calculateAge(p.getDob());
+        tvAge.setText("Age: " + age);
 
         // logic hobby
         if (p.getHobbies() != null) {
@@ -97,5 +103,36 @@ public class ChatProfileActivity extends AppCompatActivity {
         } else {
             ivProfile.setImageResource(R.drawable.ic_launcher_background);
         }
+    }
+    private String calculateAge(String dobString) {
+        try {
+            Date birthDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(dobString);
+
+            if (birthDate == null) {
+                return "-";
+            }
+
+            Calendar dob = Calendar.getInstance();
+            dob.setTime(birthDate);
+
+            Calendar today = Calendar.getInstance();
+
+            int age = today.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
+
+            if (today.get(Calendar.MONTH) < dob.get(Calendar.MONTH)) {
+                age--;
+            } else if (today.get(Calendar.MONTH) == dob.get(Calendar.MONTH) && today.get(Calendar.DAY_OF_MONTH) < dob.get(Calendar.DAY_OF_MONTH)) {
+                age--;
+            }
+
+            if (age < 0) {
+                age = 0;
+            }
+
+            return String.valueOf(age);
+        } catch (Exception e) {
+            return "-";
+        }
+
     }
 }

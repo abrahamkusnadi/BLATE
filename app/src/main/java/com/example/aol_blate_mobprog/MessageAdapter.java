@@ -1,14 +1,18 @@
 package com.example.aol_blate_mobprog;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.aol_blate_mobprog.models.Message;
+
 import java.util.ArrayList;
 
 public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -18,12 +22,13 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private ArrayList<Message> messageList;
     private Context context;
-    private String imageStr;
+    private String imageStr, userName;
 
-    public MessageAdapter(ArrayList<Message> messageList, Context context, String imageStr) {
+    public MessageAdapter(ArrayList<Message> messageList, Context context, String imageStr, String userName) {
         this.messageList = messageList;
         this.context = context;
         this.imageStr = imageStr;
+        this.userName = userName;
     }
 
     // Determine if the message is mine (Right) or theirs (Left)
@@ -69,6 +74,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
 
             receivedHolder.ivAvatar.setImageResource(resId != 0 ? resId : R.drawable.ic_launcher_background);
+
+            receivedHolder.ivAvatar.setOnClickListener(view -> {
+                Intent intent = new Intent(context, ChatProfileActivity.class);
+                intent.putExtra("userName", userName);
+                context.startActivity(intent);
+            });
         }
     }
 
