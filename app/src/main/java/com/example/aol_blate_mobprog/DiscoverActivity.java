@@ -47,8 +47,13 @@ public class DiscoverActivity extends AppCompatActivity {
         btnLike = findViewById(R.id.LikeDiscoverBtn);
         btnDislike = findViewById(R.id.DislikeDiscoverBtn);
 
-        // (Optional) If you have a "No more users" textview in XML, find it here
-        // tvNoData = findViewById(R.id.tv_no_data);
+        View cardContainer = findViewById(R.id.layoutCardPerson);
+        View btnContainer = findViewById(R.id.DiscoverBtnContainer);
+        View emptyStateLayout = findViewById(R.id.layoutEmptyState);
+
+        if (cardContainer != null) cardContainer.setVisibility(View.INVISIBLE);
+        if (btnContainer != null) btnContainer.setVisibility(View.INVISIBLE);
+        if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.INVISIBLE);
 
         // 2. Setup Buttons
         if (btnLike != null) btnLike.setOnClickListener(v -> handleSwipe(true));
@@ -176,9 +181,17 @@ public class DiscoverActivity extends AppCompatActivity {
         ImageView navProfile = findViewById(R.id.ProfileNav);
         ImageView navHistory = findViewById(R.id.HistoryNav);
         ImageView navChat = findViewById(R.id.ChatNav);
-        if (navProfile != null) navProfile.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
-        if (navHistory != null) navHistory.setOnClickListener(v -> startActivity(new Intent(this, HistoryActivity.class)));
-        if (navChat != null) navChat.setOnClickListener(v -> startActivity(new Intent(this, ChatActivity.class)));
+
+        if (navProfile != null) navProfile.setOnClickListener(v -> navigateTo(ProfileActivity.class));
+        if (navHistory != null) navHistory.setOnClickListener(v -> navigateTo(HistoryActivity.class));
+        if (navChat != null) navChat.setOnClickListener(v -> navigateTo(ChatActivity.class));
+    }
+
+    private void navigateTo(Class<?> targetActivity) {
+        Intent intent = new Intent(this, targetActivity);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
 
     // --- FUNGSI POPUP HELP (BARU) ---
