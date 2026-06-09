@@ -1,4 +1,4 @@
-plugins {
+    plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
 }
@@ -46,6 +46,7 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation("com.google.firebase:firebase-firestore:24.10.0")
     implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
+    implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
