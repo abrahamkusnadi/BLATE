@@ -23,7 +23,7 @@ public class ChatDetailActivity extends AppCompatActivity {
     private EditText etInput;
     private ImageView btnSend, btnBack;
     private TextView tvName;
-    String name;
+    private String name, imageStr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +39,20 @@ public class ChatDetailActivity extends AppCompatActivity {
 
         // get nama dari chatactivity
         name = getIntent().getStringExtra("userName");
+        imageStr = getIntent().getStringExtra("userImage");
         if(name != null) tvName.setText(name);
+        if(imageStr != null && !imageStr.isEmpty()) {
+            int resId = getResources().getIdentifier(imageStr.toLowerCase(), "drawable", getPackageName());
+            if (resId != 0) {
+                btnSend.setImageResource(resId);
+            } else {
+                btnSend.setImageResource(R.drawable.ic_launcher_background);
+            }
+        }
 
         // setup rv
         messageList = new ArrayList<>();
-        adapter = new MessageAdapter(messageList, this);
+        adapter = new MessageAdapter(messageList, this, imageStr);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 

@@ -56,7 +56,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, ChatDetailActivity.class);
-            intent.putExtra("userName", item.getName()); // Pass the name
+            intent.putExtra("userName", item.getName());
+            intent.putExtra("userImage", item.getImageStr());
             context.startActivity(intent);
         });
     }

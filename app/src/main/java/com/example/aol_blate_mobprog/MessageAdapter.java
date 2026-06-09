@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,10 +18,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private ArrayList<Message> messageList;
     private Context context;
+    private String imageStr;
 
-    public MessageAdapter(ArrayList<Message> messageList, Context context) {
+    public MessageAdapter(ArrayList<Message> messageList, Context context, String imageStr) {
         this.messageList = messageList;
         this.context = context;
+        this.imageStr = imageStr;
     }
 
     // Determine if the message is mine (Right) or theirs (Left)
@@ -49,10 +52,23 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Message message = messageList.get(position);
 
-        if (holder.getClass() == SentMessageHolder.class) {
+        if (holder instanceof SentMessageHolder) {
             ((SentMessageHolder) holder).bind(message);
-        } else {
-            ((ReceivedMessageHolder) holder).bind(message);
+
+        } else if (holder instanceof ReceivedMessageHolder) {
+            ReceivedMessageHolder receivedHolder = (ReceivedMessageHolder) holder;
+            receivedHolder.bind(message);
+
+            int resId = 0;
+            if (imageStr != null && !imageStr.isEmpty()) {
+                resId = context.getResources().getIdentifier(
+                        imageStr.toLowerCase(),
+                        "drawable",
+                        context.getPackageName()
+                );
+            }
+
+            receivedHolder.ivAvatar.setImageResource(resId != 0 ? resId : R.drawable.ic_launcher_background);
         }
     }
 
@@ -78,10 +94,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     // Holder for Their Messages
     static class ReceivedMessageHolder extends RecyclerView.ViewHolder {
         TextView tvContent, tvTime;
+        ImageView ivAvatar;
         ReceivedMessageHolder(@NonNull View itemView) {
             super(itemView);
             tvContent = itemView.findViewById(R.id.tvMessageContent);
             tvTime = itemView.findViewById(R.id.tvMessageTime);
+            ivAvatar = itemView.findViewById(R.id.ivAvatar);
         }
         void bind(Message message) {
             tvContent.setText(message.getContent());
