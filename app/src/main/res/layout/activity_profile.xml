@@ -59,7 +59,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/person" />
+                    android:src="@drawable/nadia_ayu_profile" />
             </androidx.cardview.widget.CardView>
 
             <TextView

@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     app:cardCornerRadius="20dp"
     app:cardElevation="8dp"
     android:layout_margin="16dp">
@@ -16,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/person" />
+            tools:src="@drawable/nadia_ayu_profile" />
 
         <View
             android:layout_width="match_parent"
@@ -29,7 +30,7 @@
             android:id="@+id/LocationCardTV"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Jakarta"
+            tools:text="Jakarta"
             android:textColor="#000000"
             android:background="@color/grey_background"
             android:padding="8dp"
@@ -44,7 +45,7 @@
             android:layout_above="@id/JobCardTV"
             android:layout_marginStart="16dp"
             android:layout_marginBottom="4dp"
-            android:text="Jessica Parker, 23"
+            tools:text="Jessica Parker, 23"
             android:textColor="#000000"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -56,7 +57,7 @@
             android:layout_alignParentBottom="true"
             android:layout_marginStart="16dp"
             android:layout_marginBottom="24dp"
-            android:text="Professional Model"
+            tools:text="Professional Model"
             android:textColor="#000000"
             android:textSize="14sp" />
 
