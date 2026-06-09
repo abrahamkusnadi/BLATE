@@ -121,10 +121,10 @@ public class HistoryActivity extends AppCompatActivity {
 
                             if (isLiked || isDisliked) {
                                 String name = doc.getString("name");
-                                String profile = doc.getString("about");
+                                String profile = doc.getString("profile");
 
                                 if (name == null) name = "Unknown User";
-                                if (profile == null) profile = "ic_launcher_background";
+                                if (profile == null || profile.trim().isEmpty()) profile = "";
 
                                 String date = "Recently";
                                 String status = isLiked ? "Like" : "Dislike";
@@ -133,6 +133,8 @@ public class HistoryActivity extends AppCompatActivity {
                                 Log.d("HISTORY_DEBUG", "Added to history: " + name + " | Status: " + status);
                             }
                         }
+
+                        adapter.notifyDataSetChanged();
 
                         int likedCount = 0;
                         int dislikedCount = 0;
