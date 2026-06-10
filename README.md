@@ -1,4 +1,4 @@
-readme_content = """# 💖 BLATE - Modern Dating Application
+# 💖 BLATE - Modern Dating Application
 
 ![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 ![Java](https://img.shields.io/badge/Language-Java-ED8B00?style=for-the-badge&logo=java&logoColor=white)
