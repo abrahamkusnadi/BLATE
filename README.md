@@ -62,6 +62,23 @@ As the primary developer refining this project, my specific technical contributi
 
 ---
 
-## 🚀 How to Run Locally
+## 🚀 How to Run / Installation
 
-1. Clone this repository:readme_content = """
+### Option A: For Developers (Build from Source)
+
+1. Clone this repository
+```bash
+git clone https://github.com/abrahamkusnadi/BLATE.git
+```
+2. Open the project in Android Studio.
+3. Re-sync the Gradle files to download all dependencies (including CircleImageView).
+4. Note on Firebase: 
+Ensure you have the google-services.json file placed in your app/ directory. (Due to security reasons, the production JSON file is not included in this public repository).
+5. Build and run the app on an Emulator or a Physical Android Device (Light Mode recommended for optimal viewing).
+
+### Option B: For Casual Testing (Quick Install)
+Don't want to build it from source? You can just download the pre-compiled APK to test it directly on your Android phone. It's 100% safe to install!
+
+📥 **[Download APP Here](https://github.com/abrahamkusnadi/BLATE/app-debug.apk)** *(Note: You may need to allow "Install from Unknown Sources" on your device settings).*
+
+
