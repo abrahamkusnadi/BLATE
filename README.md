@@ -23,15 +23,23 @@ BLATE is a sleek, intuitive, and interactive Android dating application designed
 
 ## 📸 Screenshots
 
-*(Replace the image paths below with the actual files in your repository)*
+*(User Journey Flow: From Onboarding to Interaction)*
 
-| Discover (Match) | Empty State | Chat Detail |
+| Sign Up | Login | Profile Setup |
 | :---: | :---: | :---: |
-| <img src="screenshots/Discover.jpeg" width="250"> | <img src="screenshots/Empty_state.jpeg" width="250"> | <img src="screenshots/Chat_details.jpeg" width="250"> |
+| <img src="screenshots/SignUp.jpeg" width="250"> | <img src="screenshots/Login.jpeg" width="250"> | <img src="screenshots/Profile.jpeg" width="250"> |
 
-| History Page | Chat Inbox | Profile Setup |
+| Edit Profile Details | Discover (Match) | Empty State |
 | :---: | :---: | :---: |
-| <img src="screenshots/History.jpeg" width="250"> | <img src="screenshots/Chat_list.jpeg" width="250"> | <img src="screenshots/Profile.jpeg" width="250"> |
+| <img src="screenshots/Add_profile_detail.jpeg" width="250"> | <img src="screenshots/Discover.jpeg" width="250"> | <img src="screenshots/Empty_state.jpeg" width="250"> |
+
+| History Page | Chat Inbox | Chat Detail |
+| :---: | :---: | :---: |
+| <img src="screenshots/History.jpeg" width="250"> | <img src="screenshots/Chat_list.jpeg" width="250"> | <img src="screenshots/Chat_details.jpeg" width="250"> |
+
+| Chat Profile Detail | | |
+| :---: | :---: | :---: |
+| <img src="screenshots/Chat_profile_detail.jpeg" width="250"> | | |
 
 ---
 
