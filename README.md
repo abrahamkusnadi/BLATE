@@ -87,7 +87,7 @@ Ensure you have the google-services.json file placed in your app/ directory. (Du
 ### Option B: For Casual Testing (Quick Install)
 Don't want to build it from source? You can just download the pre-compiled APK to test it directly on your Android phone. It's 100% safe to install!
 
-📥 **[Download APP Here](https://github.com/abrahamkusnadi/BLATE/app-debug.apk)** *(Note: You may need to allow "Install from Unknown Sources" on your device settings).*
+📥 **[Click this link & Download APP Here](https://github.com/abrahamkusnadi/BLATE/app-debug.apk)** *(Note: You may need to allow "Install from Unknown Sources" on your device settings).*
 
 ## 🚀 Future Enhancements
 
