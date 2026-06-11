@@ -13,10 +13,10 @@ BLATE is a sleek, intuitive, and interactive Android dating application designed
 
 ## ✨ Key Features
 
-* **🔍 Discover (Swipe & Match):** Browse through potential matches with a dynamic, Tinder-like interface. Features real-time Firestore fetching and custom empty states when users run out of nearby profiles.
-* **💬 Interactive Chat System:** A fully functional, real-time chat interface using `RecyclerView`. Features dynamic chat bubbles, integrated profile pictures using `CircleImageView`, and seamless data passing between activities.
-* **🕒 Activity History:** A dedicated tracking page where users can review profiles they have "Liked" or "Disliked", complete with color-coded statuses.
-* **👤 Profile Management:** Users can register, set up, and update their personal details, hobbies, and preferences, safely stored locally via `SharedPreferences` and synced to the cloud.
+* **🔍 Discover (Swipe Interface):** Browse through potential profiles with a dynamic, Tinder-like interface. Features real-time Firestore fetching of dummy candidate data and custom empty states when users run out of nearby profiles.
+* **💬 Chat UI Simulation:** An intuitive and interactive chat interface built with `RecyclerView`. It features dynamic chat bubbles, integrated profile pictures using `CircleImageView`, and seamless data passing between activities to simulate a conversation flow *(Note: Currently a UI simulation; messages are sent on-screen but not yet stored in the database)*.
+* **🕒 Activity History:** A dedicated tracking page where users can review the profiles they have "Liked" or "Disliked", complete with color-coded statuses synced with their swipe actions.
+* **👤 Profile Management:** Users can register, set up, and update their personal details, safely managed locally via `SharedPreferences` and synced to Firestore.
 * **💡 Help Dialogs:** Context-aware help popups integrated across all major screens to guide new users.
 
 ---
@@ -93,6 +93,8 @@ Don't want to build it from source? You can just download the pre-compiled APK t
 
 While BLATE is fully functional for demonstration and portfolio purposes, there is always room for growth. Future updates will focus on scaling the architecture and elevating the user experience:
 
+* **Real-Time Chat Backend:** Upgrading the current chat UI simulation into a fully functional, two-way messaging system by storing, retrieving, and syncing messages dynamically via Firestore.
+* **Live User Matching Algorithm:** Transitioning from displaying dummy candidate data to a real-time matching system that connects actual active users based on mutual "Likes" and shared preferences.
 * **Database Optimization & Security:** The current Firestore database is structured primarily for rapid prototyping and UI responsiveness. Future iterations will normalize the NoSQL data models for better efficiency, implement strict Firebase Security Rules, and establish a more scalable schema.
 * **Advanced UI/UX & Animations:** Implementing fluid, physical swipe animations (Tinder-like card stacks) for the Discover page using `ItemTouchHelper`, adding shared element transitions, and fully supporting a dynamic Dark Mode.
 * **Cloud Storage Integration:** Transitioning profile pictures from local `drawable` resources to Firebase Cloud Storage, allowing users to dynamically upload, crop, and update their actual photos.
