@@ -27,11 +27,11 @@ BLATE is a sleek, intuitive, and interactive Android dating application designed
 
 | Discover (Match) | Empty State | Chat Detail |
 | :---: | :---: | :---: |
-| <img src="screenshots/screenshot_discover.png" width="250"> | <img src="screenshots/screenshot_empty_state.png" width="250"> | <img src="screenshots/screenshot_chat_detail.png" width="250"> |
+| <img src="screenshots/Discover.png" width="250"> | <img src="screenshots/empty_state.png" width="250"> | <img src="screenshots/chat_detail.png" width="250"> |
 
 | History Page | Chat Inbox | Profile Setup |
 | :---: | :---: | :---: |
-| <img src="screenshots/screenshot_history.png" width="250"> | <img src="screenshots/screenshot_chat_list.png" width="250"> | <img src="screenshots/screenshot_profile.png" width="250"> |
+| <img src="screenshots/History.png" width="250"> | <img src="screenshots/chat_list.png" width="250"> | <img src="screenshots/profile.png" width="250"> |
 
 ---
 
