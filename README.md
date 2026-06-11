@@ -81,4 +81,12 @@ Don't want to build it from source? You can just download the pre-compiled APK t
 
 📥 **[Download APP Here](https://github.com/abrahamkusnadi/BLATE/app-debug.apk)** *(Note: You may need to allow "Install from Unknown Sources" on your device settings).*
 
+## 🚀 Future Enhancements
 
+While BLATE is fully functional for demonstration and portfolio purposes, there is always room for growth. Future updates will focus on scaling the architecture and elevating the user experience:
+
+* **Database Optimization & Security:** The current Firestore database is structured primarily for rapid prototyping and UI responsiveness. Future iterations will normalize the NoSQL data models for better efficiency, implement strict Firebase Security Rules, and establish a more scalable schema.
+* **Advanced UI/UX & Animations:** Implementing fluid, physical swipe animations (Tinder-like card stacks) for the Discover page using `ItemTouchHelper`, adding shared element transitions, and fully supporting a dynamic Dark Mode.
+* **Cloud Storage Integration:** Transitioning profile pictures from local `drawable` resources to Firebase Cloud Storage, allowing users to dynamically upload, crop, and update their actual photos.
+* **Location-Based Matching:** Replacing static "domicile" strings with actual GeoQueries to filter and find matches within a specific dynamic radius.
+* **Push Notifications:** Integrating Firebase Cloud Messaging (FCM) to alert users in real-time about new matches and incoming chat messages.
