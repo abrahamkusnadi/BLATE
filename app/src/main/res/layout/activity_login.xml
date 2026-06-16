@@ -15,7 +15,7 @@
         android:layout_height="32dp"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="24dp"
-        android:src="@android:drawable/ic_menu_help"
+        android:src="@drawable/baseline_quiz_24"
         app:tint="#E91E63"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
