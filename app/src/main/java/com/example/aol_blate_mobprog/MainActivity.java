@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
             tilConfirmPassword.setError(null);
 
             // Validasi Email
-            if (!emailInput.contains("@gmail.com")) {
+            if (!emailInput.endsWith("@gmail.com")) {
                 tilEmail.setError("Email must contain @gmail.com");
                 tilEmail.startAnimation(shake);
                 isValid = false;
